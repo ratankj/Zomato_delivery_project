@@ -2,17 +2,14 @@ from zomato.constant import *
 from zomato.config.configuration import *
 from zomato.logger import logging
 from zomato.exception import CustomException
-
+from zomato.components.data_transformation import DataTransformation
 import os,sys
 import pandas as pd
 import numpy as np
 
-
+from zomato.components import data_transformation
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
-
-
-
 
 
 
@@ -70,11 +67,24 @@ class DataIngestion:
 
 
 
-    
-if __name__ == "__main__":
-    obj = DataIngestion()
-    train_data,test_data=obj.initiate_data_ingestion()
+# run data ingestion 
+#if __name__ == "__main__":
+ #   obj = DataIngestion()
+  #  train_data,test_data=obj.initiate_data_ingestion()
 
 
 # to run this
-# pyhton src/components/data_ingestion.py
+# pyhton zomato/components/data_ingestion.py
+
+# run data_tranasformation
+
+if __name__ == "__main__":
+    obj = DataIngestion()
+    train_data_path,test_data_path=obj.initiate_data_ingestion()
+    data_transformation = DataTransformation()
+    train_arr,test_arr=data_transformation.initaite_data_transformation(train_data_path,test_data_path)
+
+
+# to run this
+# pyhton zomato/components/data_ingestion.py
+   

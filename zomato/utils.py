@@ -9,7 +9,7 @@ from sklearn.metrics import r2_score
 from zomato.exception import CustomException
 from zomato.logger import logging
 
-def save_obeject(file_path,obj):
+def save_object(file_path,obj):
     try:
         dir_path = os.path.dirname(file_path)
         
