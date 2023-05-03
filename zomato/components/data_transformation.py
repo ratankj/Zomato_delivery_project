@@ -175,6 +175,10 @@ class DataTransformation:
             X_train=preprocessing_obj.fit_transform(X_train)            
             X_test=preprocessing_obj.transform(X_test)
             logging.info("Applying preprocessing object on training and testing datasets.")
+            logging.info(f"shape of {X_train.shape} and {X_test.shape}")
+            logging.info(f"shape of {y_train.shape} and {y_test.shape}")
+            
+
             logging.info("transformation completed")
             
 
