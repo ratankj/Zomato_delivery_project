@@ -38,7 +38,7 @@ class DataTransformation:
             
 
             # defining the categorical and numerical column
-            categorical_column=['Type_of_order','Type_of_vehicle','Festival','City','Delivery_city']
+            categorical_column=['Type_of_order','Type_of_vehicle','Festival','City']
             ordinal_encod=['Road_traffic_density','Weather_conditions']
             numerical_column=['Delivery_person_Age','Delivery_person_Ratings','Vehicle_condition','multiple_deliveries','distance']
             
@@ -135,8 +135,8 @@ class DataTransformation:
 
 
 # adding delivery city
-            train_df['Delivery_city']=train_df['Delivery_person_ID'].str.split('RES',expand=True)[0]
-            test_df['Delivery_city']=test_df['Delivery_person_ID'].str.split('RES',expand=True)[0]
+            #train_df['Delivery_city']=train_df['Delivery_person_ID'].str.split('RES',expand=True)[0]
+            #test_df['Delivery_city']=test_df['Delivery_person_ID'].str.split('RES',expand=True)[0]
 
 
             logging.info('Obtaining preprocessing object')
