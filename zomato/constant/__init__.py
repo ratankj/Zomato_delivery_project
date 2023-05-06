@@ -21,5 +21,5 @@ RAW_DATA_DIR_KEY = 'raw.csv'
 DATA_TRANSFORMATION_ARTIFACT = 'data_transformation'
 DATA_TRANSFORMATION_PREPROCESSING_OBJ = 'preprocessor.pkl'
 
-MODEL_ARTIFACT = 'model'
+MODEL_ARTIFACT = 'model_trainer'
 MODEL_OBJECT = 'model.pkl'
