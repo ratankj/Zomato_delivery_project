@@ -25,32 +25,32 @@ def save_object(file_path,obj):
 def evaluate_model(X_train,y_train,X_test,y_test,models):
     try:
         report = {}
+        
         for i in range(len(models)):
             model = list(models.values())[i]
-            # Train model
-            model.fit(X_train,y_train)
-
             
-
-            # Predict Testing data
-            y_test_pred =model.predict(X_test)
-
-            # Get R2 scores for train and test data
-            #train_model_score = r2_score(ytrain,y_train_pred)
+            model.fit(X_train,y_train)
+            
+            y_test_pred = model.predict(X_test)
+            
             test_model_score = r2_score(y_test,y_test_pred)
-
-            report[list(models.keys())[i]] =  test_model_score
-
+            
+            report[list(models.keys())[i]] = test_model_score
+        
         return report
-
+            
     except Exception as e:
-        logging.info('Exception occured during model training')
+        logging.info("Exception occure while evaluation of model")
         raise CustomException(e,sys)
     
-def load_object(file_path):
+def load_model(file_path):
     try:
         with open(file_path,'rb') as file_obj:
             return pickle.load(file_obj)
+        
     except Exception as e:
-        logging.info('Exception Occured in load_object function utils')
+        logging.info("Exception occured while loading a model")
         raise CustomException(e,sys)
+    
+        
+        
