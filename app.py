@@ -27,7 +27,11 @@ def predict_datapoint():
             Road_traffic_density = request.form.get('Road_traffic_density'),
             Vehicle_condition =  int(request.form.get('Vehicle_condition')),
             multiple_deliveries = int(request.form.get('multiple_deliveries')),
-            distance = float(request.form.get('Dist_from_Rest_to_deli_loc'))
+            distance = float(request.form.get('distance')),
+            Type_of_order = request.form.get('Type_of_order'),
+            Type_of_vehicle = request.form.get('Type_of_vehicle'),
+            Festival = request.form.get('Festival'),
+            City = request.form.get('City')
         )
         
         final_new_data = data.get_data_as_dataframe()
