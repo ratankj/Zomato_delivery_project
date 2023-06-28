@@ -3,11 +3,11 @@ from zomato.exception import CustomException
 from zomato.constant import *
 from zomato.logger import logging
 #from zomato.components.data_ingestion import DataIngestion
-from zomato.config.configuration import PREPROCESSING_OBJ_PATH
+from zomato.config.configuration import PREPROCESSING_OBJ_PATH,TRANSFORMED_TRAIN_FILE_PATH,TRANSFORMED_TEST_FILE_PATH,FEATURE_ENG_OBJ_PATH
 
 
 from dataclasses import dataclass
-
+from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -18,9 +18,78 @@ from zomato.utils import save_object
 
 
 
+class Feature_Engineering(BaseEstimator, TransformerMixin):
+    
+    def __init__(self):
+        
+        """
+        This class applies necessary Feature Engneering 
+        """
+        logging.info(f"\n{'*'*20} Feature Engneering Started {'*'*20}\n\n")
+
+
+    
+        
+    
+    def distance_numpy(self,df,lat1, lon1, lat2, lon2):
+        p = np.pi/180
+        a = 0.5 - np.cos((df[lat2]-df[lat1])*p)/2 + np.cos(df[lat1]*p) * np.cos(df[lat2]*p) * (1-np.cos((df[lon2]-df[lon1])*p))/2
+        df['distance'] = 12742 * np.arcsin(np.sqrt(a))
+        
+
+
+    def transform_data(self,df):
+        try:
+
+            df.drop(['ID'],axis=1,inplace=True) 
+            logging.info("dropping the Id column")
+
+
+            logging.info("Creating feature on latitude nad longitude")
+            self.distance_numpy(df,'Restaurant_latitude','Restaurant_longitude', 
+                                'Delivery_location_latitude','Delivery_location_longitude')
+            
+
+
+            df.drop(['Delivery_person_ID','Restaurant_latitude','Restaurant_longitude','Delivery_location_latitude','Delivery_location_longitude',
+        'Order_Date','Time_Orderd','Time_Order_picked'],axis=1,inplace=True)
+            
+            
+
+
+            logging.info(f'Train Dataframe Head: \n{df.head().to_string()}')
+
+            return df
+     
+
+
+
+        except Exception as e:
+            logging.info(" error in transforming data")
+            raise CustomException(e, sys) from e 
+        
+
+
+    def fit(self,X,y=None):
+        return self
+    
+    
+    def transform(self,X:pd.DataFrame,y=None):
+        try:    
+            transformed_df=self.transform_data(X)
+                
+            return transformed_df
+        except Exception as e:
+            raise CustomException(e,sys) from e
+
+
+
 @dataclass
 class DataTransformationConfig():
     preprocessor_obj_file_path=PREPROCESSING_OBJ_PATH
+    transformed_train_path=TRANSFORMED_TRAIN_FILE_PATH
+    transformed_test_path=TRANSFORMED_TEST_FILE_PATH
+    feature_eng_obj_path=FEATURE_ENG_OBJ_PATH
 
 
 class DataTransformation:
@@ -107,11 +176,14 @@ class DataTransformation:
         return dist
     '''
 
-    def distance_numpy(self,df,lat1, lon1, lat2, lon2):
-        p = np.pi/180
-        a = 0.5 - np.cos((df[lat2]-df[lat1])*p)/2 + np.cos(df[lat1]*p) * np.cos(df[lat2]*p) * (1-np.cos((df[lon2]-df[lon1])*p))/2
-        df['distance'] = 12742 * np.arcsin(np.sqrt(a))
     
+    def get_feature_engineering_object(self):
+        try:
+            
+            feature_engineering = Pipeline(steps = [("fe",Feature_Engineering())])
+            return feature_engineering
+        except Exception as e:
+            raise CustomException(e,sys) from e
 
 
 
@@ -122,16 +194,12 @@ class DataTransformation:
             train_df = pd.read_csv(train_path)
             test_df = pd.read_csv(test_path)
 
-            logging.info('Read train and test data completed')
-            logging.info(f'Train Dataframe Head : \n{train_df.head().to_string()}')
-            logging.info(f'Test Dataframe Head  : \n{test_df.head().to_string()}')
+            #logging.info('Read train and test data completed')
+            #logging.info(f'Train Dataframe Head : \n{train_df.head().to_string()}')
+            #logging.info(f'Test Dataframe Head  : \n{test_df.head().to_string()}')
 
 
-            logging.info("Creating feature on latitude nad longitude")
-            self.distance_numpy(train_df,'Restaurant_latitude','Restaurant_longitude', 
-                                'Delivery_location_latitude','Delivery_location_longitude')
-            self.distance_numpy(test_df,'Restaurant_latitude','Restaurant_longitude', 
-                                'Delivery_location_latitude','Delivery_location_longitude')
+            
 
 
 # adding delivery city
@@ -141,20 +209,29 @@ class DataTransformation:
 
             logging.info('Obtaining preprocessing object')
 
+
+
+            logging.info(f"Obtaining feature engineering object.")
+            fe_obj = self.get_feature_engineering_object()
+
+            logging.info(f"Applying feature engineering object on training dataframe and testing dataframe")
+            logging.info(">>>" * 20 + " Training data " + "<<<" * 20)
+            logging.info(f"Feature Enineering - Train Data ")
+            train_df = fe_obj.fit_transform(train_df)
+            logging.info(">>>" * 20 + " Test data " + "<<<" * 20)
+            logging.info(f"Feature Enineering - Test Data ")
+            test_df = fe_obj.transform(test_df)
+
+            train_df.to_csv("train_data.csv")
+            test_df.to_csv("test_data.csv")
+            logging.info(f"Saving csv to train_data and test_data.csv")
+
 # preprocessing object
 
             preprocessing_obj = self.get_data_transformation_object()
 
-# column to drop
-            train_df.drop(['Delivery_person_ID','Restaurant_latitude','Restaurant_longitude','Delivery_location_latitude','Delivery_location_longitude',
-        'Order_Date','Time_Orderd','Time_Order_picked'],axis=1,inplace=True)
+
             
-            test_df.drop(['Delivery_person_ID','Restaurant_latitude','Restaurant_longitude','Delivery_location_latitude','Delivery_location_longitude',
-        'Order_Date','Time_Orderd','Time_Order_picked'],axis=1,inplace=True)
-
-
-            logging.info(f'Train Dataframe Head: \n{train_df.head().to_string()}')
-            logging.info(f'Train Dataframe Head: \n{test_df.head().to_string()}')
 
 # target column
 
@@ -188,12 +265,40 @@ class DataTransformation:
 
             logging.info("train_arr, test_arr completed")
 
+            
+
+            logging.info("train arr , test arr")
+
+
+            df_train= pd.DataFrame(train_arr)
+            df_test = pd.DataFrame(test_arr)
+
+            logging.info("converting train_arr and test_arr to dataframe")
+            #logging.info(f"Final Train Transformed Dataframe Head:\n{df_train.head().to_string()}")
+            #logging.info(f"Final Test transformed Dataframe Head:\n{df_test.head().to_string()}")
+
+            os.makedirs(os.path.dirname(self.data_transformation_config.transformed_train_path),exist_ok=True)
+            df_train.to_csv(self.data_transformation_config.transformed_train_path,index=False,header=True)
+
+            logging.info("transformed_train_path")
+            logging.info(f"transformed dataset columns : {df_train.columns}")
+
+            os.makedirs(os.path.dirname(self.data_transformation_config.transformed_test_path),exist_ok=True)
+            df_test.to_csv(self.data_transformation_config.transformed_test_path,index=False,header=True)
+
 
             save_object(
                 file_path=self.data_transformation_config.preprocessor_obj_file_path,
                 obj=preprocessing_obj)
             
             logging.info("Preprocessor file saved")
+
+
+            save_object(
+                file_path=self.data_transformation_config.feature_eng_obj_path,
+                obj=fe_obj)
+            logging.info("Feature eng file saved")
+
             
             return(train_arr,
                    test_arr,

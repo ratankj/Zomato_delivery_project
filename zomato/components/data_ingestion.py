@@ -41,18 +41,32 @@ class DataIngestion:
             os.makedirs(os.path.dirname(self.data_ingestion_config.raw_data_path),exist_ok=True)  
             df.to_csv(self.data_ingestion_config.raw_data_path,index=False)   
 
-            df.drop(['ID'],axis=1,inplace=True) 
+            
 
-            logging.info('Train test split')
-            #train_set = None
-            #test_set = None
+            
 
-            train_set,test_set=train_test_split(df,test_size=0.30,random_state=42)
 
+
+            
+
+            logging.info("train test split")
+
+            train_set,test_Set = train_test_split(df,test_size=0.20,random_state=42)
+
+            os.makedirs(os.path.dirname(self.data_ingestion_config.train_data_path),exist_ok=True)
             train_set.to_csv(self.data_ingestion_config.train_data_path,index=False,header=True)
-            test_set.to_csv(self.data_ingestion_config.test_data_path,index=False,header=True)
+           
 
-            logging.info('Ingestion of Data is completed')
+            logging.info(f"train data path, {TRAIN_FILE_PATH}")
+
+            os.makedirs(os.path.dirname(self.data_ingestion_config.test_data_path),exist_ok=True)
+            test_Set.to_csv(self.data_ingestion_config.test_data_path,index=False,header=True)
+            
+            
+            
+            logging.info(f"test data path, {TEST_FILE_PATH}")
+
+            logging.info("data ingestion complete")
 
 
             return(
@@ -66,6 +80,14 @@ class DataIngestion:
             raise CustomException(e,sys)
 
 
+
+
+if __name__ == "__main__":
+    obj=DataIngestion()
+  
+    train_data,test_data=obj.initiate_data_ingestion()
+    data_transformation = DataTransformation()
+    train_arr,test_arr,_ = data_transformation.initaite_data_transformation(train_data,test_data)
 
 # run data ingestion 
 #if __name__ == "__main__":
